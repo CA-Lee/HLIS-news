@@ -63,12 +63,19 @@ def filt(dataset):
     #print(dataset)
     
     #get latest post on facebook page
-    r_api = graph.get_object(id=cfg["page_id"],fields="posts.limit(1)")
+    r_api = graph.get_object(id=cfg["page_id"],fields="posts.limit(10)")
     #print(r_api)
     
     #find the latest post title
-    last_title = r_api['posts']['data'][0]['message'].strip()
-    #print(last_title)
+    for i in range(10):
+        try:
+            last_title = r_api['posts']['data'][i]['message'].strip()
+            #print(last_title)
+        except KeyError:
+            last_title = ""
+            
+        if last_title != "":
+            break
     
     #abstract title
     regex = re.compile(r'[^\/]*\/\s*(.*)\s+\/\s\d{4}\-\d{2}\-\d{2}') #match title
@@ -110,11 +117,12 @@ def filt(dataset):
 def publisher(postset):
     
     r_api = []
+    postset.reverse()
     for post in postset:
         
         #post text,link
         r = graph.put_object(cfg['page_id'],"feed",message=post["message"],link=post["link"])
-        #print(r)
+        print("result : ",r)
         r_api.append(r)
         
         time.sleep(20)
@@ -127,7 +135,7 @@ while True:
     
     now = time.localtime(time.time())
     
-    print(now.tm_hour," : ")
+    print(now.tm_hour," : ",end="")
     
     if now.tm_hour >= 6 and now.tm_hour <= 20:
         
@@ -137,10 +145,10 @@ while True:
         #print(rawlist)
         
         ready4post = filt(rawlist)
-        #print(ready4post)
+        print(ready4post)
         
         result = publisher(ready4post)
-        #print(result)
+        #print("result:",result)
         
     else:
         
